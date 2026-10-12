@@ -10,6 +10,12 @@ Small, dependency-light Python automation I run on my home server:
 
 Everything uses the standard library only at runtime. `pytest` and `ruff` are dev-only.
 
+## Architecture
+
+![homelab-ai runtime architecture](docs/architecture/architecture.png)
+
+Primary path (highlighted): `cron` runs `run.sh`, which starts `paperless_organize.py`; the job sends a compact prompt to the Claude CLI and `PATCH`es the classification it returns to the Paperless-ngx API. The Open WebUI tools and the read-only `server-api` form a second, independent flow. Interactive version: [`docs/architecture/architecture.html`](docs/architecture/architecture.html) (generated with [Archify](https://github.com/tt-a1i/archify) from [`architecture.spec.json`](docs/architecture/architecture.spec.json)).
+
 ## Flow
 
 ```
