@@ -1,60 +1,394 @@
 {
-  "schema_version": 1,
-  "diagram_type": "architecture",
-  "meta": {
-    "title": "homelab-ai: runtime architecture",
-    "output": "docs/architecture/architecture.html",
-    "quality_profile": "showcase",
-    "repository": {
-      "url": "git@github.com:asillaV/homelab-ai.git",
-      "link_mode": "local-only",
-      "revision": "0877e153e12df53cb8b314248e97c82c114da0f0"
+ "schema_version": 1,
+ "diagram_type": "architecture",
+ "meta": {
+  "title": "homelab-ai: runtime architecture",
+  "output": "docs/architecture/architecture.html",
+  "quality_profile": "showcase",
+  "repository": {
+   "url": "git@github.com:asillaV/homelab-ai.git",
+   "link_mode": "local-only",
+   "revision": "0877e153e12df53cb8b314248e97c82c114da0f0"
+  }
+ },
+ "components": [
+  {
+   "id": "cron",
+   "type": "backend",
+   "label": "run.sh",
+   "sublabel": "cron wrapper, loads .env",
+   "pos": [
+    40,
+    60
+   ],
+   "size": [
+    190,
+    64
+   ],
+   "sources": [
+    {
+     "path": "paperless-organize/run.sh",
+     "line": 6,
+     "end_line": 20
     }
+   ]
   },
-  "components": [
-    { "id": "cron", "type": "backend", "label": "run.sh", "sublabel": "cron wrapper, loads .env", "pos": [40, 60], "size": [190, 64],
-      "sources": [{ "path": "paperless-organize/run.sh", "line": 6, "end_line": 20 }] },
-    { "id": "job", "type": "backend", "label": "paperless_organize.py", "sublabel": "queue, prompt, PATCH", "pos": [360, 60], "size": [230, 64],
-      "sources": [{ "path": "paperless-organize/paperless_organize.py", "line": 185, "end_line": 250 }] },
-    { "id": "claude", "type": "external", "label": "Claude CLI", "sublabel": "claude -p, subprocess", "pos": [720, 60], "size": [190, 64],
-      "sources": [{ "path": "paperless-organize/paperless_organize.py", "line": 145, "end_line": 153 }] },
-    { "id": "ntfy", "type": "external", "label": "ntfy", "sublabel": "optional notification", "pos": [40, 220], "size": [190, 64],
-      "sources": [{ "path": "paperless-organize/run.sh", "line": 25, "end_line": 33 }] },
-    { "id": "paperless", "type": "external", "label": "Paperless-ngx API", "sublabel": "REST, token auth", "pos": [360, 220], "size": [230, 64],
-      "sources": [{ "path": "paperless-organize/paperless_organize.py", "line": 52, "end_line": 66 }, { "path": "paperless-organize/paperless_organize.py", "line": 247 }] },
-    { "id": "owui", "type": "external", "label": "Open WebUI", "sublabel": "loads the tool files", "pos": [40, 450], "size": [190, 64],
-      "sources": [{ "path": "openwebui-tools/server_homelab.py", "line": 1, "end_line": 6 }] },
-    { "id": "toolserver", "type": "backend", "label": "server_homelab", "sublabel": "5 read-only tools", "pos": [360, 390], "size": [230, 64],
-      "sources": [{ "path": "openwebui-tools/server_homelab.py", "line": 23, "end_line": 30 }] },
-    { "id": "toollinux", "type": "backend", "label": "linux_ops", "sublabel": "7 tools, service allowlist", "pos": [360, 510], "size": [230, 64],
-      "sources": [{ "path": "openwebui-tools/linux_ops.py", "line": 19, "end_line": 35 }, { "path": "openwebui-tools/linux_ops.py", "line": 155, "end_line": 168 }] },
-    { "id": "serverapi", "type": "backend", "label": "server_api.py", "sublabel": "HTTP GET, JSON, :11435", "pos": [790, 390], "size": [200, 64],
-      "sources": [{ "path": "server-api/server_api.py", "line": 172, "end_line": 180 }, { "path": "server-api/server_api.py", "line": 221 }] },
-    { "id": "linuxops", "type": "external", "label": "linux-ops backend", "sublabel": "not part of this repo", "pos": [790, 510], "size": [200, 64],
-      "sources": [{ "path": "openwebui-tools/linux_ops.py", "line": 16 }] },
-    { "id": "hostcli", "type": "external", "label": "systemctl / docker", "sublabel": "shell subprocess", "pos": [1120, 350], "size": [190, 64],
-      "sources": [{ "path": "server-api/server_api.py", "line": 137, "end_line": 142 }, { "path": "server-api/server_api.py", "line": 159, "end_line": 164 }] },
-    { "id": "netalertx", "type": "external", "label": "NetAlertX", "sublabel": "GraphQL API", "pos": [1120, 450], "size": [190, 64],
-      "sources": [{ "path": "server-api/server_api.py", "line": 103, "end_line": 112 }] }
-  ],
-  "boundaries": [
-    { "kind": "security-group", "label": "Open WebUI: tools run here", "wraps": ["owui", "toolserver", "toollinux"] },
-    { "kind": "region", "label": "Host services (default bind 127.0.0.1)", "wraps": ["serverapi", "linuxops", "hostcli", "netalertx"] }
-  ],
-  "connections": [
-    { "id": "cron-job", "from": "cron", "to": "job", "label": "python3", "variant": "emphasis" },
-    { "id": "job-claude", "from": "job", "to": "claude", "label": "prompt, JSON out", "variant": "emphasis" },
-    { "id": "job-paperless", "from": "job", "to": "paperless", "label": "GET / PATCH", "variant": "emphasis" },
-    { "id": "cron-ntfy", "from": "cron", "to": "ntfy", "label": "summary", "variant": "dashed" },
-    { "id": "owui-toolserver", "from": "owui", "to": "toolserver", "label": "tool call" },
-    { "id": "owui-toollinux", "from": "owui", "to": "toollinux", "label": "tool call" },
-    { "id": "toolserver-api", "from": "toolserver", "to": "serverapi", "label": "HTTP GET" },
-    { "id": "toollinux-ops", "from": "toollinux", "to": "linuxops", "label": "GET / POST" },
-    { "id": "api-host", "from": "serverapi", "to": "hostcli", "label": "run_cmd" },
-    { "id": "api-nax", "from": "serverapi", "to": "netalertx", "label": "POST" }
-  ],
-  "cards": [
-    { "dot": "cyan", "title": "Primary path", "items": ["cron runs run.sh, which runs paperless_organize.py", "The job sends a compact prompt to the Claude CLI and PATCHes the result to Paperless-ngx"] },
-    { "dot": "amber", "title": "Not drawn (no evidence in the repo)", "items": ["Open WebUI to local LLM link", "What linux-ops does on the host", "Tailscale: access control is outside this code"] }
-  ]
+  {
+   "id": "job",
+   "type": "backend",
+   "label": "paperless_organize.py",
+   "sublabel": "queue, prompt, PATCH",
+   "pos": [
+    360,
+    60
+   ],
+   "size": [
+    230,
+    64
+   ],
+   "sources": [
+    {
+     "path": "paperless-organize/paperless_organize.py",
+     "line": 185,
+     "end_line": 250
+    }
+   ]
+  },
+  {
+   "id": "claude",
+   "type": "external",
+   "label": "Claude CLI",
+   "sublabel": "claude -p, subprocess",
+   "pos": [
+    720,
+    60
+   ],
+   "size": [
+    190,
+    64
+   ],
+   "sources": [
+    {
+     "path": "paperless-organize/paperless_organize.py",
+     "line": 145,
+     "end_line": 153
+    }
+   ]
+  },
+  {
+   "id": "ntfy",
+   "type": "external",
+   "label": "ntfy",
+   "sublabel": "optional notification",
+   "pos": [
+    40,
+    220
+   ],
+   "size": [
+    190,
+    64
+   ],
+   "sources": [
+    {
+     "path": "paperless-organize/run.sh",
+     "line": 25,
+     "end_line": 33
+    }
+   ]
+  },
+  {
+   "id": "paperless",
+   "type": "external",
+   "label": "Paperless-ngx API",
+   "sublabel": "REST, token auth",
+   "pos": [
+    360,
+    220
+   ],
+   "size": [
+    230,
+    64
+   ],
+   "sources": [
+    {
+     "path": "paperless-organize/paperless_organize.py",
+     "line": 52,
+     "end_line": 66
+    },
+    {
+     "path": "paperless-organize/paperless_organize.py",
+     "line": 247
+    }
+   ]
+  },
+  {
+   "id": "owui",
+   "type": "external",
+   "label": "Open WebUI",
+   "sublabel": "external, loads the tool files",
+   "pos": [
+    40,
+    450
+   ],
+   "size": [
+    190,
+    64
+   ],
+   "sources": [
+    {
+     "path": "openwebui-tools/server_homelab.py",
+     "line": 1,
+     "end_line": 6
+    }
+   ]
+  },
+  {
+   "id": "toolserver",
+   "type": "backend",
+   "label": "server_homelab",
+   "sublabel": "5 read-only tools",
+   "pos": [
+    520,
+    390
+   ],
+   "size": [
+    230,
+    64
+   ],
+   "sources": [
+    {
+     "path": "openwebui-tools/server_homelab.py",
+     "line": 23,
+     "end_line": 30
+    }
+   ]
+  },
+  {
+   "id": "toollinux",
+   "type": "backend",
+   "label": "linux_ops",
+   "sublabel": "7 tools, service allowlist",
+   "pos": [
+    520,
+    510
+   ],
+   "size": [
+    230,
+    64
+   ],
+   "sources": [
+    {
+     "path": "openwebui-tools/linux_ops.py",
+     "line": 19,
+     "end_line": 35
+    },
+    {
+     "path": "openwebui-tools/linux_ops.py",
+     "line": 155,
+     "end_line": 168
+    }
+   ]
+  },
+  {
+   "id": "serverapi",
+   "type": "backend",
+   "label": "server_api.py",
+   "sublabel": "HTTP GET, JSON, :11435",
+   "pos": [
+    950,
+    390
+   ],
+   "size": [
+    200,
+    64
+   ],
+   "sources": [
+    {
+     "path": "server-api/server_api.py",
+     "line": 172,
+     "end_line": 180
+    },
+    {
+     "path": "server-api/server_api.py",
+     "line": 221
+    }
+   ]
+  },
+  {
+   "id": "linuxops",
+   "type": "external",
+   "label": "linux-ops backend",
+   "sublabel": "external, not in this repo",
+   "pos": [
+    950,
+    510
+   ],
+   "size": [
+    200,
+    64
+   ],
+   "sources": [
+    {
+     "path": "openwebui-tools/linux_ops.py",
+     "line": 16
+    }
+   ]
+  },
+  {
+   "id": "hostcli",
+   "type": "external",
+   "label": "systemctl / docker",
+   "sublabel": "shell subprocess",
+   "pos": [
+    1280,
+    350
+   ],
+   "size": [
+    190,
+    64
+   ],
+   "sources": [
+    {
+     "path": "server-api/server_api.py",
+     "line": 137,
+     "end_line": 142
+    },
+    {
+     "path": "server-api/server_api.py",
+     "line": 159,
+     "end_line": 164
+    }
+   ]
+  },
+  {
+   "id": "netalertx",
+   "type": "external",
+   "label": "NetAlertX",
+   "sublabel": "GraphQL API",
+   "pos": [
+    1280,
+    450
+   ],
+   "size": [
+    190,
+    64
+   ],
+   "sources": [
+    {
+     "path": "server-api/server_api.py",
+     "line": 103,
+     "end_line": 112
+    }
+   ]
+  }
+ ],
+ "boundaries": [
+  {
+   "kind": "security-group",
+   "label": "Open WebUI: tools run here",
+   "wraps": [
+    "owui",
+    "toolserver",
+    "toollinux"
+   ]
+  },
+  {
+   "kind": "region",
+   "label": "Host services (default bind 127.0.0.1)",
+   "wraps": [
+    "serverapi",
+    "linuxops",
+    "hostcli",
+    "netalertx"
+   ]
+  }
+ ],
+ "connections": [
+  {
+   "id": "cron-job",
+   "from": "cron",
+   "to": "job",
+   "label": "python3",
+   "variant": "emphasis"
+  },
+  {
+   "id": "job-claude",
+   "from": "job",
+   "to": "claude",
+   "label": "prompt, JSON out",
+   "variant": "emphasis"
+  },
+  {
+   "id": "job-paperless",
+   "from": "job",
+   "to": "paperless",
+   "label": "GET / PATCH",
+   "variant": "emphasis"
+  },
+  {
+   "id": "cron-ntfy",
+   "from": "cron",
+   "to": "ntfy",
+   "label": "summary",
+   "variant": "dashed"
+  },
+  {
+   "id": "owui-toolserver",
+   "from": "owui",
+   "to": "toolserver",
+   "label": "invoked by Open WebUI (not in repo)",
+   "variant": "dashed"
+  },
+  {
+   "id": "owui-toollinux",
+   "from": "owui",
+   "to": "toollinux",
+   "label": "invoked by Open WebUI (not in repo)",
+   "variant": "dashed"
+  },
+  {
+   "id": "toolserver-api",
+   "from": "toolserver",
+   "to": "serverapi",
+   "label": "HTTP GET"
+  },
+  {
+   "id": "toollinux-ops",
+   "from": "toollinux",
+   "to": "linuxops",
+   "label": "GET / POST (external)"
+  },
+  {
+   "id": "api-host",
+   "from": "serverapi",
+   "to": "hostcli",
+   "label": "run_cmd"
+  },
+  {
+   "id": "api-nax",
+   "from": "serverapi",
+   "to": "netalertx",
+   "label": "POST"
+  }
+ ],
+ "cards": [
+  {
+   "dot": "cyan",
+   "title": "Primary path",
+   "items": [
+    "cron runs run.sh, which runs paperless_organize.py",
+    "The job sends a compact prompt to the Claude CLI and PATCHes the result to Paperless-ngx"
+   ]
+  },
+  {
+   "dot": "amber",
+   "title": "Not drawn (no evidence in the repo)",
+   "items": [
+    "Open WebUI to local LLM link",
+    "The tool calls themselves: Open WebUI invokes the tools, no code in this repo triggers them",
+    "What linux-ops does on the host",
+    "Tailscale: access control is outside this code"
+   ]
+  }
+ ]
 }
