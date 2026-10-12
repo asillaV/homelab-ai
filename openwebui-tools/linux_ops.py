@@ -128,7 +128,7 @@ class Tools:
     async def lista_directory(self, path: str) -> str:
         """
         Mostra il contenuto di una directory del server.
-        Path consentiti: /srv, /opt, /home/user, /var/log, /tmp.
+        Sono consentiti solo i percorsi in allowlist sul backend (es. /path/to/data, /var/log).
         :param path: percorso della directory
         :return: elenco file e directory
         """
