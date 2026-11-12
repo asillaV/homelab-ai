@@ -7,3 +7,24 @@ __pycache__/
 .venv/
 *.egg-info/
 docs/architecture/*.delivery.json
+
+# Secrets / credentials
+.env.*
+!.env.example
+secrets.*
+credentials.*
+*.pem
+*.key
+*.crt
+*.p12
+id_rsa*
+id_ed25519*
+
+# Data, dumps, logs, shell history
+*.sqlite
+*.sqlite3
+*.db
+*.bak
+*.dump
+cron.log
+.bash_history
